@@ -12,8 +12,14 @@
 
   <ons-splitter>
     <!-- The side menu -->
-    <ons-splitter-side id="menu" collapse width="220px">
-      <ons-page></ons-page>
+    <ons-splitter-side id="menu" collapse>
+      <ons-page>
+        <ons-list>
+          <ons-list-item onclick="loadPage('about.html')">
+            About
+          </ons-list-item>
+        </ons-list>
+      </ons-page>
     </ons-splitter-side>
 
     <!-- Everything not in the side menu -->
@@ -63,20 +69,32 @@
 
   <template id="home.html">
     <ons-page id="home">
+      <script>
+        const openMenu = () => {
+          document.querySelector('#menu').open();
+        };
+      </script>
+  
       <ons-toolbar id="home-toolbar">
+        <div class="center">Pokémon</div>
+  
         <div class="left">
           <ons-toolbar-button onclick="openMenu()">
             <ons-icon icon="md-menu"></ons-icon>
           </ons-toolbar-button>
         </div>
-        <div class="center">Home</div>
       </ons-toolbar>
   
-      Hello!
+      <ons-tabbar id="tabbar">
+        <ons-tab page="pokemon.html" label="Pokémon" icon="md-face"></ons-tab>
+        <ons-tab page="saved.html" label="Saved" icon="md-menu"></ons-tab>
+      </ons-tabbar>
       <script>
-        const openMenu = () => {
-          document.querySelector('#menu').open();
-        };
+        document.addEventListener('prechange', ({ target, tabItem }) => {
+          if (target.matches('#tabbar')) {
+            document.querySelector('#home-toolbar .center').innerHTML = tabItem.getAttribute('label');
+          }
+        });
       </script>
     </ons-page>
   </template>
@@ -86,6 +104,9 @@
   <template id="about.html">
     <ons-page id="about">
       <ons-toolbar>
+        <div class="left">
+          <ons-back-button></ons-back-button>
+        </div>
         <div class="center">About</div>
       </ons-toolbar>
 
@@ -93,7 +114,85 @@
     </ons-page>
   </template>
 
+
+<template id="pokemon.html">
+  <ons-page id="pokemon">
+
+    <script>
+    </script>
+
+    <ons-list id="pokemon-list">
+      <ons-list-item expandable>
+        bulbasaur
+        <div class="expandable-content">
+          <ons-button onclick="savePokemon(1, this)">Save</ons-button>
+        </div>
+      </ons-list-item>
+
+      <ons-list-item expandable>
+        charmander
+        <div class="expandable-content">
+          <ons-button onclick="savePokemon(4, this)">Save</ons-button>
+        </div>
+      </ons-list-item>
+
+      <ons-list-item expandable>
+        squirtle
+        <div class="expandable-content">
+          <ons-button onclick="savePokemon(7, this)">Save</ons-button>
+        </div>
+      </ons-list-item>
+
+      <ons-list-item expandable>
+        pikachu
+        <div class="expandable-content">
+          <ons-button onclick="savePokemon(25, this)">Save</ons-button>
+        </div>
+      </ons-list-item>
+
+      <ons-list-item expandable>
+        trubbish
+        <div class="expandable-content">
+          <ons-button onclick="savePokemon(568, this)">Save</ons-button>
+        </div>
+      </ons-list-item>
+    </ons-list>
+
   <script>
+    const savePokemon = (pokenumber, button) => {
+      addPokemonToGrid(pokenumber);
+      button.parentNode.parentNode.hideExpansion();
+    };
+  </script>
+  </ons-page>
+</template>
+
+
+
+  <template id="saved.html">
+    <ons-page id="saved">
+  
+      <script>
+      </script>
+  
+      <p>Saved Pokémon go here.</p>
+  
+    <script>
+      let savedPokemon = [];
+
+      const addPokemonToGrid = pokenumber => {
+        // we save a list so we can pass it to the gallery
+        savedPokemon.push(pokenumber);
+      };
+    </script>
+    </ons-page>
+  </template>
+
+  <script>
+    const loadPage = (page) => {
+      document.querySelector('#menu').close();
+      document.querySelector('#navigator').bringPageTop(page, { animation: 'fade' });
+    };
   </script>
 </body>
 
