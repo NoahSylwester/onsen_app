@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+  <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+  <script src="https://unpkg.com/onsenui/js/onsenui.min.js">
+  </script>
+</head>
+
+<body>
+
+  <ons-splitter>
+    <!-- The side menu -->
+    <ons-splitter-side id="menu" collapse width="220px">
+      <ons-page></ons-page>
+    </ons-splitter-side>
+
+    <!-- Everything not in the side menu -->
+    <ons-splitter-content>
+      <ons-navigator id="navigator" page="login.html"></ons-navigator>
+    </ons-splitter-content>
+  </ons-splitter>
+
+
+
+  <template id="login.html">
+    <ons-page id="login">
+      <script>
+        const login = () => {
+          const username = document.querySelector('#username').value;
+          const password = document.querySelector('#password').value;
+
+          if (username === '' && password === '') {
+            // call the navigator to move to the new page
+            const navigator = document.querySelector('#navigator');
+            navigator.resetToPage('home.html');
+          } else {
+            ons.notification.alert('Wrong username/password combination');
+          }
+        };
+      </script>
+
+      <div style="text-align: center; margin-top: 200px">
+        <p>
+          <ons-input id="username" placeholder="Username" modifier="underbar"></ons-input>
+        </p>
+
+        <p>
+          <ons-input id="password" placeholder="Password" type="password" modifier="underbar">
+          </ons-input>
+        </p>
+
+        <p>
+          <ons-button onclick="login()">Sign in</ons-button>
+        </p>
+      </div>
+
+    </ons-page>
+  </template>
+
+
+
+  <template id="home.html">
+    <ons-page id="home">
+      <ons-toolbar id="home-toolbar">
+        <div class="left">
+          <ons-toolbar-button onclick="openMenu()">
+            <ons-icon icon="md-menu"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+        <div class="center">Home</div>
+      </ons-toolbar>
+  
+      Hello!
+      <script>
+        const openMenu = () => {
+          document.querySelector('#menu').open();
+        };
+      </script>
+    </ons-page>
+  </template>
+
+
+  
+  <template id="about.html">
+    <ons-page id="about">
+      <ons-toolbar>
+        <div class="center">About</div>
+      </ons-toolbar>
+
+      This is the about page.
+    </ons-page>
+  </template>
+
+  <script>
+  </script>
+</body>
+
+</html>
