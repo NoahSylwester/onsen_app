@@ -74,17 +74,17 @@
           document.querySelector('#menu').open();
         };
       </script>
-  
+
       <ons-toolbar id="home-toolbar">
         <div class="center">Pokémon</div>
-  
+
         <div class="left">
           <ons-toolbar-button onclick="openMenu()">
             <ons-icon icon="md-menu"></ons-icon>
           </ons-toolbar-button>
         </div>
       </ons-toolbar>
-  
+
       <ons-tabbar id="tabbar">
         <ons-tab page="pokemon.html" label="Pokémon" icon="md-face"></ons-tab>
         <ons-tab page="saved.html" label="Saved" icon="md-menu"></ons-tab>
@@ -100,7 +100,7 @@
   </template>
 
 
-  
+
   <template id="about.html">
     <ons-page id="about">
       <ons-toolbar>
@@ -115,76 +115,192 @@
   </template>
 
 
-<template id="pokemon.html">
-  <ons-page id="pokemon">
+  <template id="pokemon.html">
+    <ons-page id="pokemon">
+  
+      <script>
+        const savePokemon = (pokenumber, button) => {
+          addPokemonToGrid(pokenumber);
+          button.parentNode.parentNode.hideExpansion();
+        };
 
-    <script>
-    </script>
+        const appendPokemon = (pokenumber, name) => {
+          const list = document.querySelector('#pokemon-list');
+          list.appendChild(ons.createElement(`
+                  <ons-list-item expandable>
+                    ${pokenumber} ${name}
+                    <div class="expandable-content">
+                      <ons-button onclick="savePokemon(${pokenumber}, this)">Save</ons-button>
+                    </div>
+                  </ons-list-item>
+                `));
+        }
 
-    <ons-list id="pokemon-list">
-      <ons-list-item expandable>
-        bulbasaur
-        <div class="expandable-content">
-          <ons-button onclick="savePokemon(1, this)">Save</ons-button>
-        </div>
-      </ons-list-item>
+        document.addEventListener('init', ({ target }) => {
+          if (target.matches('#pokemon')) {
+            // local storage keys
+            const URL = 'pokemon__url';
+            const PREFIX = 'pokemon__';
 
-      <ons-list-item expandable>
-        charmander
-        <div class="expandable-content">
-          <ons-button onclick="savePokemon(4, this)">Save</ons-button>
-        </div>
-      </ons-list-item>
+            let nextPokenumber = 1;
+            let storedPokemon;
 
-      <ons-list-item expandable>
-        squirtle
-        <div class="expandable-content">
-          <ons-button onclick="savePokemon(7, this)">Save</ons-button>
-        </div>
-      </ons-list-item>
+            while ((storedPokemon = localStorage.getItem(PREFIX + nextPokenumber)) !== null) {
+              console.log(`got ${storedPokemon} from local with key ${PREFIX + nextPokenumber}`);
+              appendPokemon(nextPokenumber, storedPokemon);
+              nextPokenumber++;
+            }
 
-      <ons-list-item expandable>
-        pikachu
-        <div class="expandable-content">
-          <ons-button onclick="savePokemon(25, this)">Save</ons-button>
-        </div>
-      </ons-list-item>
+            if (!localStorage.getItem(URL)) {
+              localStorage.setItem(URL, 'https://pokeapi.co/api/v2/pokemon');
+            }
 
-      <ons-list-item expandable>
-        trubbish
-        <div class="expandable-content">
-          <ons-button onclick="savePokemon(568, this)">Save</ons-button>
-        </div>
-      </ons-list-item>
-    </ons-list>
+            const get = async () => {
+              // do the API call and get JSON response
+              const response = await fetch(localStorage.getItem(URL));
+              const json = await response.json();
 
-  <script>
-    const savePokemon = (pokenumber, button) => {
-      addPokemonToGrid(pokenumber);
-      button.parentNode.parentNode.hideExpansion();
-    };
-  </script>
-  </ons-page>
-</template>
+              const newPokemon = json.results.map(e => e.name);
+
+              const list = document.querySelector('#pokemon-list');
+              newPokemon.forEach((name, i) => {
+                appendPokemon(nextPokenumber, name);
+
+                const key = PREFIX + nextPokenumber;
+                console.log(`Storing ${name} as ${key}`);
+                localStorage.setItem(key, name)
+                nextPokenumber++;
+              });
+
+              localStorage.setItem(URL, json.next);
+
+              // hide the spinner when all the pages have been loaded
+              if (!localStorage.getItem(URL)) {
+                document.querySelector('#after-list').style.display = 'none';
+              }
+            };
+
+            // get the first set of results as soon as the page is initialised
+            get();
+
+            // at the bottom of the list get the next set of results and append them
+            target.onInfiniteScroll = (done) => {
+              if (localStorage.getItem(URL)) {
+                setTimeout(() => {
+                  get();
+                  done();
+                }, 200);
+              }
+            };
+          }
+        });
+      </script>
+  
+      <ons-list id="pokemon-list">
+      </ons-list>
+  
+      <div id="after-list" style="margin: 20px; text-align: center;">
+        <ons-icon icon="fa-spinner" size="26px" spin></ons-icon>
+      </div>
+  
+    </ons-page>
+  </template>
 
 
-
-  <template id="saved.html">
-    <ons-page id="saved">
+  <template id="gallery.html">
+    <ons-page id="gallery">
+      <style>
+        .gallery-image {
+          width: 100%;
+        }
+      </style>
   
       <script>
       </script>
   
-      <p>Saved Pokémon go here.</p>
+      <ons-toolbar id="picture-toolbar">
+        <div class="left">
+          <ons-back-button></ons-back-button>
+        </div>
+      </ons-toolbar>
   
-    <script>
-      let savedPokemon = [];
+      <ons-carousel id="carousel" fullscreen swipeable auto-scroll auto-scroll-ratio="0.1">
+      </ons-carousel>
+      <script>
+        document.addEventListener('show', ({ target }) => {
+          if (target.matches('#gallery')) {
+            const { pokenumber, savedPokemon } = document.querySelector('#navigator').topPage.data;
 
-      const addPokemonToGrid = pokenumber => {
-        // we save a list so we can pass it to the gallery
-        savedPokemon.push(pokenumber);
-      };
-    </script>
+            const carousel = document.querySelector('#carousel');
+
+            // figure out what new pokemon have been saved since we last showed the gallery
+            // this way we don't accidentally add the same pokemon twice
+            const sliceIndex = carousel.itemCount - savedPokemon.length;
+
+            if (sliceIndex !== 0) { // if there are unadded pokemon
+              const unaddedPokemon = savedPokemon.slice(sliceIndex);
+
+              unaddedPokemon.map(number => {
+                const carouselItem = ons.createElement(`
+            <ons-carousel-item>
+              <ons-card>
+                <img class="gallery-image" src="pokemon/${number}.png" />
+              </ons-card>
+            </ons-carousel-item>
+          `);
+
+                carousel.appendChild(carouselItem);
+              });
+            }
+
+            // go to the selected pokemon
+            carousel.setActiveIndex(savedPokemon.indexOf(pokenumber));
+          }
+        });
+      </script>
+    </ons-page>
+  </template>
+
+
+  <template id="saved.html">
+    <ons-page id="saved">
+      <style>
+        #grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          grid-auto-rows: 33vw;
+        }
+
+        #grid img {
+          width: 100%;
+          height: 100%;
+        }
+      </style>
+
+      <script>
+        let savedPokemon = [];
+
+        const addPokemonToGrid = pokenumber => {
+          // we save a list so we can pass it to the gallery
+          savedPokemon.push(pokenumber);
+
+          // now add the new pokemon to the grid
+          const grid = document.querySelector('#grid');
+          const cell = document.createElement('div');
+          cell.onclick = () => document.querySelector('#navigator')
+            .bringPageTop('gallery.html', { data: { pokenumber, savedPokemon } });
+
+          const image = document.createElement('img');
+          image.setAttribute('src', `pokemon/${pokenumber}.png`);
+
+          cell.appendChild(image);
+          grid.appendChild(cell);
+        };
+      </script>
+
+      <div id="content">
+        <div id="grid"></div>
+      </div>
     </ons-page>
   </template>
 
